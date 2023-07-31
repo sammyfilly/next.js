@@ -39,9 +39,12 @@ if (shouldEnableTestTrace) {
     customJestConfig.reporters = ['default']
   }
 
-  const outputDirectory = process.env.TURBOPACK
+  const outputDirectory = (process.env.TURBOPACK || process.env.EXPERIMENTAL_TURBOPACK)
     ? '<rootDir>/turbopack-test-junit-report'
     : '<rootDir>/test-junit-report'
+
+  console.log('---------------------- running jest with ', {outputDirectory})
+
   customJestConfig.reporters.push([
     'jest-junit',
     {

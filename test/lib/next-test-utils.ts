@@ -26,7 +26,7 @@ import type { RequestInit, Response } from 'node-fetch'
 import type { NextServer } from 'next/dist/server/next'
 import type { BrowserInterface } from './browsers/base'
 
-import { shouldRunTurboDevTest } from './turbo'
+import { getTurbopackFlag, shouldRunTurboDevTest } from './turbo'
 
 export { shouldRunTurboDevTest }
 
@@ -436,9 +436,12 @@ export function launchApp(
   const useTurbo = shouldRunTurboDevTest()
 
   return runNextCommandDev(
-    [useTurbo ? '--turbo' : undefined, dir, '-p', port as string].filter(
-      Boolean
-    ),
+    [
+      useTurbo ? getTurbopackFlag() : undefined,
+      dir,
+      '-p',
+      port as string,
+    ].filter(Boolean),
     undefined,
     {
       ...options,

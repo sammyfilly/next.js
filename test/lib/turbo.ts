@@ -14,13 +14,26 @@ export function shouldRunTurboDevTest(): boolean {
     return false
   }
 
-  const shouldRunTurboDev = !!process.env.TURBOPACK
+  const shouldRunTurboDev =
+    !!process.env.TURBOPACK || !!process.env.EXPERIMENTAL_TURBOPACK
   if (shouldRunTurboDev && !loggedTurbopack) {
     require('console').log(
-      `Running tests with turbopack because environment variable TURBOPACK is set`
+      `Running tests with turbopack because environment variable ${
+        process.env.TURBOPACK ? 'TURBOPACK' : 'EXPERIMENTAL_TURBOPACK'
+      } is set`
     )
     loggedTurbopack = true
   }
 
   return shouldRunTurboDev
+}
+
+export function getTurbopackFlag(): string {
+  if (!!process.env.TURBOPACK) {
+    return '--turbo'
+  } else if (!!process.env.EXPERIMENTAL_TURBOPACK) {
+    return '--experimental-turbo'
+  } else {
+    throw Error(`Cannot get the flag for running turbopack`)
+  }
 }
