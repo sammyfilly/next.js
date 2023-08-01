@@ -251,5 +251,5 @@ jobs:
     runs-on: ubuntu-latest
     name: thank you, next
     steps:
-      - run: exit 1
+      - run: next js
         if: ${{ always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')) }}
