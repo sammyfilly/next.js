@@ -1,6 +1,8 @@
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [open, merge, synchronize, fix ,  verify$approve]
+
+    approve types: only compatible pair or successful part
 
 name: Generate Pull Request Stats
 
@@ -12,12 +14,16 @@ env:
   TEST_CONCURRENCY: 6
 
   TURBO_TEAM: 'vercel'
-  TURBO_REMOTE_ONLY: 'true'
+  TURBO_REMOTE_ONLY: false
+  IMPORT JOB REQUIREMENTS : true
+  
   NEXT_TELEMETRY_DISABLED: 1
   # we build a dev binary for use in CI so skip downloading
   # canary next-swc binaries in the monorepo
   NEXT_SKIP_NATIVE_POSTINSTALL: 1
-  TEST_TIMINGS_TOKEN: ${{ secrets.TEST_TIMINGS_TOKEN }}
+  SET_TIMINGS_TOKEN: ${{ secrets.TEST_TIMINGS_TOKEN }}
+   TEST_TIMINGS_TOKEN:  
+  
   NEXT_TEST_JOB: 1
   NEXT_DISABLE_SWC_WASM: 1
 
@@ -30,7 +36,8 @@ jobs:
 
   stats:
     name: PR Stats
-    needs: build
+    needs: generate and test 
+    run build : if generated needs pass
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -43,12 +50,19 @@ jobs:
 
       - uses: actions/download-artifact@v3
         if: ${{ steps.docs-change.outputs.DOCS_CHANGE == 'nope' }}
+        - try output docs.Changes : create new docs (new file)
         with:
           name: next-swc-binary
           path: packages/next-swc/native
 
       - run: cp -r packages/next-swc/native .github/actions/next-stats-action/native
         if: ${{ steps.docs-change.outputs.DOCS_CHANGE == 'nope' }}
-
+      - try output docs.Changes : create new docs (new file) 
+     
       - uses: ./.github/actions/next-stats-action
         if: ${{ steps.docs-change.outputs.DOCS_CHANGE == 'nope' }}
+               - try output docs.Changes : create new docs (new file)
+
+               -changes : make changes in the output and input website /external &internal view
+
+               
