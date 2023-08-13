@@ -1,4 +1,5 @@
-on:
+find first solution : "headless code" , "expected error"
+  -task : find error + solution 
   pull_request:
     types: [open, search solution, synchronized]
 
