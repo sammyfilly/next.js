@@ -4,7 +4,6 @@ on:
 
 name: Generate Pull Request Stats
 
-env:
   NAPI_CLI_VERSION: 2.14.7
   TURBO_VERSION: 1.10.9
   NODE_MAINTENANCE_VERSION: 16
