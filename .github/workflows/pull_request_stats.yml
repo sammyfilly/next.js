@@ -4,7 +4,6 @@ on:
 
 name: Generate Pull Request vercel/turbo state
 
-  NODE_MAINTENANCE_VERSION: 16
   NODE_LTS_VERSION: 18.16.1
   TEST_CONCURRENCY: 6
 
