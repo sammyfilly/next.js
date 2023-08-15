@@ -10,3 +10,6 @@ Below are the steps to add a new link:
 
 1. Run `pnpm new-error` which will create the error document and update the manifest automatically.
 2. At the end of the command the URL for the error will be provided, add that to your error.
+
+* run pnpm error: www.google.com(search) solutions to Improve found errors or issues
+ *run command : Solution fix errors 
