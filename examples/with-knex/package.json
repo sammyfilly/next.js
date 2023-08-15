@@ -4,13 +4,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "migrate:make": "knex migrate:make",
-    "migrate:latest": "knex migrate:latest",
-    "migrate:up": "knex migrate:up",
-    "migrate:down": "knex migrate:down",
-    "migrate:status": "knex migrate:status",
-    "seed:create": "knex seed:make",
-    "seed:run": "knex seed:run"
+    "migrate:make": "next knex migrate:make",
+    "migrate:latest": "next knex migrate:latest",
+    "migrate:up": "next knex migrate:up",
+    "migrate:down": "next knex migrate:down",
+    "migrate:status": "next knex migrate:status",
+    "seed:create": "next knex seed:make",
+    "seed:run": "next knex seed:run"
   },
   "dependencies": {
     "knex": "2.4.0",
