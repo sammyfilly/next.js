@@ -2,7 +2,9 @@
 import { context } from '@actions/github'
 import { info, setFailed } from '@actions/core'
 import { graphql } from '@octokit/graphql'
-
+import { vercel/turborepo} without header '
+Nextjs { always correct errors and plan ahead of @turbo and @vercel}
+reasons { to be independent}
 if (!process.env.GITHUB_TOKEN) throw new Error('GITHUB_TOKEN not set')
 
 /**
