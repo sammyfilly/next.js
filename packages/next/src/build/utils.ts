@@ -14,13 +14,13 @@ import type {
   EdgeFunctionDefinition,
   MiddlewareManifest,
 } from './webpack/plugins/middleware-plugin'
-import type { AppRouteUserlandModule } from '../server/future/route-modules/app-route/module'
 import type { StaticGenerationAsyncStorage } from '../client/components/static-generation-async-storage'
 
 import '../server/require-hook'
 import '../server/node-polyfill-fetch'
 import '../server/node-polyfill-crypto'
 import '../server/node-environment'
+
 import chalk from 'next/dist/compiled/chalk'
 import getGzipSize from 'next/dist/compiled/gzip-size'
 import textTable from 'next/dist/compiled/text-table'
@@ -52,7 +52,7 @@ import {
   LoadComponentsReturnType,
 } from '../server/load-components'
 import { trace } from '../trace'
-import { setHttpClientAndAgentOptions } from '../server/config'
+import { setHttpClientAndAgentOptions } from '../server/setup-http-agent-env'
 import { recursiveDelete } from '../lib/recursive-delete'
 import { Sema } from 'next/dist/compiled/async-sema'
 import { denormalizePagePath } from '../shared/lib/page-path/denormalize-page-path'
@@ -66,8 +66,12 @@ import { nodeFs } from '../server/lib/node-fs-methods'
 import * as ciEnvironment from '../telemetry/ci-info'
 import { normalizeAppPath } from '../shared/lib/router/utils/app-paths'
 import { denormalizeAppPagePath } from '../shared/lib/page-path/denormalize-app-path'
+import { AppRouteRouteModule } from '../server/future/route-modules/app-route/module'
 
 export type ROUTER_TYPE = 'pages' | 'app'
+
+// Use `print()` for expected console output
+const print = console.log
 
 const RESERVED_PAGE = /^\/(_app|_error|_document|api(\/|$))/
 const fileGzipStats: { [k: string]: Promise<number> | undefined } = {}
@@ -319,7 +323,7 @@ export async function printTreeView(
     buildManifest,
     appBuildManifest,
     middlewareManifest,
-    useStatic404,
+    useStaticPages404,
     gzipSize = true,
   }: {
     distPath: string
@@ -329,7 +333,7 @@ export async function printTreeView(
     buildManifest: BuildManifest
     appBuildManifest?: AppBuildManifest
     middlewareManifest: MiddlewareManifest
-    useStatic404: boolean
+    useStaticPages404: boolean
     gzipSize?: boolean
   }
 ) {
@@ -601,10 +605,11 @@ export async function printTreeView(
 
   pageInfos.set('/404', {
     ...(pageInfos.get('/404') || pageInfos.get('/_error')),
-    static: useStatic404,
+    static: useStaticPages404,
   } as any)
 
-  if (!lists.pages.includes('/404')) {
+  // If there's no app /_notFound page present, then the 404 is still using the pages/404
+  if (!lists.pages.includes('/404') && !lists.app?.includes('/_not-found')) {
     lists.pages = [...lists.pages, '/404']
   }
 
@@ -626,15 +631,15 @@ export async function printTreeView(
     messages.push(['ƒ Middleware', getPrettySize(sum(middlewareSizes)), ''])
   }
 
-  console.log(
+  print(
     textTable(messages, {
       align: ['l', 'l', 'r'],
       stringLength: (str) => stripAnsi(str).length,
     })
   )
 
-  console.log()
-  console.log(
+  print()
+  print(
     textTable(
       [
         usedSymbols.has('ℇ') && [
@@ -676,7 +681,7 @@ export async function printTreeView(
     )
   )
 
-  console.log()
+  print()
 }
 
 export function printCustomRoutes({
@@ -690,8 +695,8 @@ export function printCustomRoutes({
   ) => {
     const isRedirects = type === 'Redirects'
     const isHeaders = type === 'Headers'
-    console.log(chalk.underline(type))
-    console.log()
+    print(chalk.underline(type))
+    print()
 
     /*
         ┌ source
@@ -733,7 +738,7 @@ export function printCustomRoutes({
       })
       .join('\n')
 
-    console.log(routesStr, '\n')
+    print(routesStr, '\n')
   }
 
   if (redirects.length) {
@@ -1034,6 +1039,7 @@ export async function buildStaticPaths({
                   .join('/')
               : escapePathDelimiters(paramValue as string, true)
           )
+          .replace(/\\/g, '/')
           .replace(/(?!^)\/$/, '')
 
         encodedBuiltPage = encodedBuiltPage
@@ -1043,6 +1049,7 @@ export async function buildStaticPaths({
               ? (paramValue as string[]).map(encodeURIComponent).join('/')
               : encodeURIComponent(paramValue as string)
           )
+          .replace(/\\/g, '/')
           .replace(/(?!^)\/$/, '')
       })
 
@@ -1339,7 +1346,6 @@ export async function isPageStatic({
   pageRuntime,
   edgeInfo,
   pageType,
-  hasServerComponents,
   originalAppPath,
   isrFlushToDisk,
   maxMemoryCacheSize,
@@ -1356,7 +1362,6 @@ export async function isPageStatic({
   edgeInfo?: any
   pageType?: 'pages' | 'app'
   pageRuntime?: ServerRuntime
-  hasServerComponents?: boolean
   originalAppPath?: string
   isrFlushToDisk?: boolean
   maxMemoryCacheSize?: number
@@ -1425,7 +1430,6 @@ export async function isPageStatic({
         componentsResult = await loadComponents({
           distDir,
           pathname: originalAppPath || page,
-          hasServerComponents: !!hasServerComponents,
           isAppPath: pageType === 'app',
         })
       }
@@ -1437,10 +1441,6 @@ export async function isPageStatic({
       if (pageType === 'app') {
         isClientComponent = isClientReference(componentsResult.ComponentMod)
         const tree = componentsResult.ComponentMod.tree
-
-        // This is present on the new route modules.
-        const userland: AppRouteUserlandModule | undefined =
-          componentsResult.routeModule?.userland
 
         const staticGenerationAsyncStorage: StaticGenerationAsyncStorage =
           componentsResult.ComponentMod.staticGenerationAsyncStorage
@@ -1457,19 +1457,23 @@ export async function isPageStatic({
           )
         }
 
-        const generateParams: GenerateParams = userland
-          ? [
-              {
-                config: {
-                  revalidate: userland.revalidate,
-                  dynamic: userland.dynamic,
-                  dynamicParams: userland.dynamicParams,
+        const { routeModule } = componentsResult
+
+        const generateParams: GenerateParams =
+          routeModule && AppRouteRouteModule.is(routeModule)
+            ? [
+                {
+                  config: {
+                    revalidate: routeModule.userland.revalidate,
+                    dynamic: routeModule.userland.dynamic,
+                    dynamicParams: routeModule.userland.dynamicParams,
+                  },
+                  generateStaticParams:
+                    routeModule.userland.generateStaticParams,
+                  segmentPath: page,
                 },
-                generateStaticParams: userland.generateStaticParams,
-                segmentPath: page,
-              },
-            ]
-          : await collectGenerateParams(tree)
+              ]
+            : await collectGenerateParams(tree)
 
         appConfig = generateParams.reduce(
           (builtConfig: AppConfig, curGenParams): AppConfig => {
@@ -1669,7 +1673,6 @@ export async function hasCustomGetInitialProps(
   const components = await loadComponents({
     distDir,
     pathname: page,
-    hasServerComponents: false,
     isAppPath: false,
   })
   let mod = components.ComponentMod
@@ -1692,7 +1695,6 @@ export async function getDefinedNamedExports(
   const components = await loadComponents({
     distDir,
     pathname: page,
-    hasServerComponents: false,
     isAppPath: false,
   })
 
@@ -1932,12 +1934,12 @@ export async function copyTracedFiles(
 import path from 'path'
 import { fileURLToPath } from 'url'
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
-import { createServerHandler } from 'next/dist/server/lib/render-server-standalone.js'
+import { startServer } from 'next/dist/server/lib/start-server.js'
 `
         : `
 const http = require('http')
 const path = require('path')
-const { createServerHandler } = require('next/dist/server/lib/render-server-standalone')`
+const { startServer } = require('next/dist/server/lib/start-server')`
     }
 
 const dir = path.join(__dirname)
@@ -1954,11 +1956,7 @@ if (!process.env.NEXT_MANUAL_SIG_HANDLE) {
 
 const currentPort = parseInt(process.env.PORT, 10) || 3000
 const hostname = process.env.HOSTNAME || 'localhost'
-const keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT, 10);
-const isValidKeepAliveTimeout =
-  !Number.isNaN(keepAliveTimeout) &&
-  Number.isFinite(keepAliveTimeout) &&
-  keepAliveTimeout >= 0;
+let keepAliveTimeout = parseInt(process.env.KEEP_ALIVE_TIMEOUT, 10);
 const nextConfig = ${JSON.stringify({
       ...serverConfig,
       distDir: `./${path.relative(dir, distDir)}`,
@@ -1966,41 +1964,24 @@ const nextConfig = ${JSON.stringify({
 
 process.env.__NEXT_PRIVATE_STANDALONE_CONFIG = JSON.stringify(nextConfig)
 
-createServerHandler({
-  port: currentPort,
-  hostname,
+if (
+  Number.isNaN(keepAliveTimeout) ||
+  !Number.isFinite(keepAliveTimeout) ||
+  keepAliveTimeout < 0
+) {
+  keepAliveTimeout = undefined
+}
+
+startServer({
   dir,
-  conf: nextConfig,
-  keepAliveTimeout: isValidKeepAliveTimeout ? keepAliveTimeout : undefined,
-}).then((nextHandler) => {
-  const server = http.createServer(async (req, res) => {
-    try {
-      await nextHandler(req, res)
-    } catch (err) {
-      console.error(err);
-      res.statusCode = 500
-      res.end('Internal Server Error')
-    }
-  })
-
-  if (isValidKeepAliveTimeout) {
-    server.keepAliveTimeout = keepAliveTimeout
-  }
-
-  server.listen(currentPort, async (err) => {
-    if (err) {
-      console.error("Failed to start server", err)
-      process.exit(1)
-    }
-
-    console.log(
-      'Listening on port',
-      currentPort,
-      'url: http://' + hostname + ':' + currentPort
-    )
-  });
-
-}).catch(err => {
+  isDev: false,
+  config: nextConfig,
+  hostname,
+  port: currentPort,
+  allowRetry: false,
+  keepAliveTimeout,
+  useWorkers: !!nextConfig.experimental?.appDir,
+}).catch((err) => {
   console.error(err);
   process.exit(1);
 });`
