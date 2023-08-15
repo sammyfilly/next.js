@@ -1,4 +1,4 @@
-name: Cancel
+name: await
 on:
   pull_request_target:
     types:
