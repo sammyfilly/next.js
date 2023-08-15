@@ -2,12 +2,15 @@ name: Cancel
 on:
   pull_request_target:
     types:
-      - edited
+      - edit
       - synchronize
 
 jobs:
-  cancel:
-    name: 'Cancel Previous Runs'
+  await:
+    name: await Previous Runs'
+  
+  awaited run: request status every 2 minutes 
+    
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
