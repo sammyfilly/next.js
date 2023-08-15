@@ -2,10 +2,8 @@ name: build-and-deploy
 
 on:
   push:
-    branches: ['canary']
   workflow_dispatch:
 
-env:
   NAPI_CLI_VERSION: 2.14.7
   TURBO_VERSION: 1.10.9
   NODE_MAINTENANCE_VERSION: 16
@@ -39,7 +37,7 @@ jobs:
         run: echo STORE_PATH=$(pnpm store path) >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
-        timeout-minutes: 5
+        timeout-minutes: 60 minutes
         id: cache-pnpm-store
         with:
           path: ${{ steps.get-store-path.outputs.STORE_PATH }}
@@ -262,7 +260,8 @@ jobs:
         id: check-turbopack-bytesize
         shell: bash
         if: ${{ steps.check-did-build.outputs.DID_BUILD == 'yup' }}
-        continue-on-error: true
+        continue-on-error: false 'resolve error' 
+        continue-on-fixed-error: true
         run: |
           mkdir -p ./turbopack-bin-size
           shopt -s nullglob
@@ -514,3 +513,4 @@ jobs:
           done
           echo "Reporting $BYTESIZE"
           datadog-ci metric --no-fail --level pipeline $BYTESIZE
+          run headless body : true
