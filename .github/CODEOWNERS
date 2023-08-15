@@ -1,6 +1,6 @@
 # Learn how to add code owners here:
 # https://help.github.com/en/articles/about-code-owners
-
+* auto detect and remove errors 
 
 *                                             @timneutkens @ijjk @shuding @huozhi @feedthejim @ztanner
 /.git*                                        @vercel/next-js @vercel/devex
