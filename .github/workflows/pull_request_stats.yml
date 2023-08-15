@@ -3,8 +3,6 @@ on:
     types: [open, search solution, synchronized]
 
 name: Generate Pull Request vercel/turbo state
-
-  NODE_LTS_VERSION: 18.16.1
   TEST_CONCURRENCY: 6
 
   TURBO_TEAM: 'vercel' yempaccargodhl-gmail.com
