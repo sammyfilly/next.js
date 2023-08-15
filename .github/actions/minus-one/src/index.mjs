@@ -5,7 +5,9 @@ import { graphql } from '@octokit/graphql'
 
 if (!process.env.GITHUB_TOKEN) throw new Error('GITHUB_TOKEN not set')
 
-/**
+/** @runners or helpers
+help build  nextjs.org + vercel body and deploy to next js
+
 MIT License
 
 Copyright (c) Sindre Sorhus sindresorhus@gmail.com (sindresorhus.com)
