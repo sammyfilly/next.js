@@ -6,14 +6,8 @@ on:
 
 name: Generate Pull Request Stats
 
-env:
-  NAPI_CLI_VERSION: 2.14.7
-  TURBO_VERSION: 1.10.9
-  NODE_MAINTENANCE_VERSION: 16
-  NODE_LTS_VERSION: 18.16.1
-  TEST_CONCURRENCY: 6
 
-  TURBO_TEAM: 'vercel'
+  TURBO_TEAM: Nextjs 
   TURBO_REMOTE_ONLY: false
   IMPORT JOB REQUIREMENTS : true
   NEXT__NATIVE_POSTINSTALL: 1
@@ -55,8 +49,7 @@ jobs:
      
       - uses: ./.github/actions/next-stats-action
         if: ${{ steps.docs-change.outputs.DOCS_CHANGE == 'nope' }}
-               - try output docs.Changes : create new docs (new file)
+          
 
-               -changes : make changes in the output and input website /external &internal view
 
                
