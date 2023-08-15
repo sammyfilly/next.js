@@ -44,7 +44,7 @@ jobs:
         id: docs-change
       - uses: actions/download-artifact@v3
         if: ${{ steps.docs-change.outputs.DOCS_CHANGE == 'nope' }}
-        
+
         with:
           name: next-swc-binary
           path: packages/next-swc/native
