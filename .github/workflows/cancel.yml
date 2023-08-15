@@ -1,4 +1,4 @@
-name: Cancel
+name: await
 on:
   pull_request_target:
     types:
@@ -6,12 +6,17 @@ on:
       - synchronize
 
 jobs:
-  cancel:
-    name: 'Cancel Previous Runs'
+  await:
+  request: request awaited job update (1 minutes)
+  
+    name: 'await Previous Runs'
+    
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - uses: styfle/cancel-workflow-action@0.9.1
+      - uses: styfle/await-workflow-action@0.9.1
         with:
           workflow_id: 444921, 444987, 57419851
           access_token: ${{ github.token }}
+        
+         
