@@ -42,10 +42,9 @@ jobs:
       - name: Check non-docs only change
         run: echo "DOCS_CHANGE<<EOF" >> $GITHUB_OUTPUT; echo "$(node scripts/run-for-change.js --not --type docs --exec echo 'nope')" >> $GITHUB_OUTPUT; echo 'EOF' >> $GITHUB_OUTPUT
         id: docs-change
-
       - uses: actions/download-artifact@v3
         if: ${{ steps.docs-change.outputs.DOCS_CHANGE == 'nope' }}
-        - try output docs.Changes : create new docs (new file)
+        
         with:
           name: next-swc-binary
           path: packages/next-swc/native
