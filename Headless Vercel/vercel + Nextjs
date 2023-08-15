@@ -1,3 +1,4 @@
+
 * required job needed by nextjs.org
 import { @vercel constant } if support is required @turbo is the best option & (@chrome,edge,middleware)'search'
 * header : not required from @vercel : true
@@ -8,7 +9,46 @@ on going job on @vercel : mail <yempaccargodhl@gmail.com>
 filter : always filters errors in different file
 set new admin : true (@sammyfilly author)
 
-Middleware allows you to run code before a request is completed. Then, based on the incoming request, you can modify the response by rewriting, redirecting, modifying the request or response headers, or responding directly.
+@next js : don't publish or deploy to vercel : false/true
+*false if deployment isn't correct
+*true if information/content is correct 
+
+
+Middleware allows you to run code beforeSearch...
+⌘ K
+
+
+Vercel Documentation
+Vercel's frontend cloud gives developers frameworks, workflows, and infrastructure to build a faster, more personalized web.
+Start with a tutorial
+Get started in minutes
+Deploy a Template
+View All Templates
+Our ecosystem
+Explore Vercel's products
+
+Next.js
+A React framework that gives you building blocks to create web applications.
+
+Turborepo
+A high-performance build system for JavaScript and TypeScript codebases.
+
+Turbopack
+Beta
+An incremental bundler optimized for JavaScript and TypeScript, written in Rust.
+Solving your circumstance
+The Vercel Guides
+How to build a fullstack app with Next.js, Prisma and Postgres
+Build, Deployment & Git
+
+Integrating Next.js and Contentful for your headless CMS
+Databases & CMS
+
+Using headless Wordpress with Next.js and Vercel
+Databases & CMS
+
+Building E-commerce Sites with Next.js and Shopify
+Databases & CMS a request is completed. Then, based on the incoming request, you can modify the response by rewriting, redirecting, modifying the request or response headers, or responding directly.
 
 Middleware runs before cached content and routes are matched. See Matching Paths for more details.
 
@@ -19,9 +59,9 @@ Use the file middleware.ts (or .js) in the root of your project to define Middle
 Example
 
 middleware.ts
-
+@nextjs always throw required job {in form of request to @vercel} save response and body
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+export type { NextRequest } from @vercel 'next/server'
  
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
