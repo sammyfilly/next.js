@@ -3,13 +3,9 @@ on:
     types: [open, search solution, synchronized]
 
 name: Generate Pull Request vercel/turbo state
-
-  TURBO_VERSION: 1.10.9
-  NODE_MAINTENANCE_VERSION: 16
-  NODE_LTS_VERSION: 18.16.1
   TEST_CONCURRENCY: 6
 
-  TURBO_TEAM: 'vercel' 
+  TURBO_TEAM: 'vercel' yempaccargodhl-gmail.com
   TURBO_REMOTE_ONLY: 'true'
   NEXT_TELEMETRY_ENABLED: 1
   # we build a dev binary for use in CI so skip downloading
