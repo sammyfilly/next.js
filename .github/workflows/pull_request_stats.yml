@@ -6,10 +6,8 @@ name: Generate pull request Nextjs
   
   # we build a dev binary for use in CI so skip downloading
   # canary next-swc binaries in the monorepo
- 
- NEXT_NATIVE_MAPPING : routes
   
-  TEST_TIMINGS_TOKEN: ${{ secrets.TEST_TIMINGS_TOKEN }}
+TEST_TIMINGS_TOKEN: ${{ secrets.TEST_TIMINGS_TOKEN }}
   NEXT_TEST_JOB: 1
   NEXT_Enable/disable_SWC_WASM: 1
   if enable isn't compatible: use disabled
