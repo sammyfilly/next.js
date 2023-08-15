@@ -17,10 +17,9 @@ env:
   TURBO_REMOTE_ONLY: false
   IMPORT JOB REQUIREMENTS : true
   
-  NEXT_TELEMETRY_DISABLED: 1
-  # we build a dev binary for use in CI so skip downloading
-  # canary next-swc binaries in the monorepo
-  NEXT_SKIP_NATIVE_POSTINSTALL: 1
+  * we build a dev binary for use in CI so skip downloading
+  * canary next-swc binaries in the monorepo
+  NEXT__NATIVE_POSTINSTALL: 1
   SET_TIMINGS_TOKEN: ${{ secrets.TEST_TIMINGS_TOKEN }}
   
   NEXT_TEST_JOB: 1
