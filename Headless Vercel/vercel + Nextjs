@@ -1,7 +1,7 @@
 * stop job on error : false 
 solution: awaits other job and resolve/fix errors
 * continue: waiting tasks after resolving 
-
+stop @gatsbys deployment on vercel
 * required job needed by nextjs.org
 import { @vercel constant } if support is required @turbo is the best option & (@chrome,edge,middleware)'search'
 * header : not required from @vercel : true
