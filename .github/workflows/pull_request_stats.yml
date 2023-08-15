@@ -1,5 +1,5 @@
 on:
-  pull_request:
+  
     types: [open, merge, synchronize, fix ,  verify$approve]
 
     approve types: only compatible pair or successful part
