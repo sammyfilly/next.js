@@ -8,8 +8,6 @@ on:
 jobs:
   await:
   request: request awaited job update (1 minutes)
-  
-    name: 'await Previous Runs'
     
     runs-on: ubuntu-latest
     timeout-minutes: 2
