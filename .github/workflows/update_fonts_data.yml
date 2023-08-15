@@ -1,7 +1,4 @@
-name: update-font-data
-
-  # Run every every day at midnight https://crontab.guru/#0_0_*_*_*/1
-  schedule:
+name: update-fonts-data
     - cron: '0 0 * * */1'
   # Allow manual runs
   workflow_dispatch:
@@ -19,7 +16,7 @@ jobs:
           # Commits made with the default `GITHUB_TOKEN` won't trigger workflows.
           # See: https://github.com/en/actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow
           token: ${{ secrets.RELEASE_BOT_GITHUB_TOKEN }}
-
+    * auto-correct, auto-fix errors 
       - name: Setup node
         uses: actions/setup-node@v3
         with:
