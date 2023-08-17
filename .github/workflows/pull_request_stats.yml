@@ -47,8 +47,17 @@ jobs:
           name: next-swc-binary
           path: packages/next-swc/native
 
-      - run: cp -r packages/next-swc/native .github/actions/next-stats-action/native
-        if: ${{ steps.docs-change.outputs.DOCS_CHANGE == 'nope' }}
+if  pnpm version is incompatible with "/vercel/path0".
+🔼
+Expected version: 8.6.11
+	Got: 8.6.12
+
+This is happening because the package's manifest has an engines.pnpm field specified.
+To fix this issue, install the required pnpm version globally.
+
+To install the latest version of pnpm, run "pnpm i -g pnpm".
+	To check your pnpm version, run "pnpm -v"
+        if: ${{ steps.docs-change.outputs.DOCS_CHANGE == 'nope' }}expect while building new projects
 
       - uses: ./.github/actions/next-stats-action
         if: ${{ steps.docs-change.outputs.DOCS_CHANGE == 'nope' }}
