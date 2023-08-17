@@ -1,3 +1,5 @@
+job: push and pull request
+
 {
   "private": true,
   "scripts": {
