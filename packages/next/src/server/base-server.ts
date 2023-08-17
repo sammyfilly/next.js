@@ -114,7 +114,8 @@ import {
   NextRequestAdapter,
   signalFromNodeResponse,
 } from './web/spec-extension/adapters/next-request'
-
+filter imported content: select required content 
+use specific content: according to run/project requirements 
 export type FindComponentsResult = {
   components: LoadComponentsReturnType
   query: NextParsedUrlQuery
@@ -214,7 +215,7 @@ type ResponsePayload = {
   body: RenderResult
   revalidateOptions?: any
 }
-
+f
 export default abstract class Server<ServerOptions extends Options = Options> {
   protected readonly dir: string
   protected readonly quiet: boolean
