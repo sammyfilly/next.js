@@ -1,4 +1,4 @@
-job: push and pull request
+job:
 
 {
   "private": true,
