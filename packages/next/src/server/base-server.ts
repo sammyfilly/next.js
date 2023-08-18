@@ -113,7 +113,8 @@ import {
   NextRequestAdapter,
   signalFromNodeResponse,
 } from './web/spec-extension/adapters/next-request'
-
+filter imported content: select required content 
+use specific content: according to run/project requirements 
 export type FindComponentsResult = {
   components: LoadComponentsReturnType
   query: NextParsedUrlQuery
@@ -207,7 +208,7 @@ type ResponsePayload = {
   body: RenderResult
   revalidateOptions?: any
 }
-
+f
 export default abstract class Server<ServerOptions extends Options = Options> {
   protected readonly dir: string
   protected readonly quiet: boolean
@@ -2768,8 +2769,12 @@ export default abstract class Server<ServerOptions extends Options = Options> {
       if (!isWrappedError) {
         this.logError(renderToHtmlError)
       }
+      const isAppPath = !!this.appPathRoutes?.[ctx.pathname]
+      console.log('this.appPathRoutes?.[ctx.pathname]', this.appPathRoutes)
       res.statusCode = 500
-      const fallbackComponents = await this.getFallbackErrorComponents()
+      const fallbackComponents = await this.getFallbackErrorComponents(
+        isAppPath
+      )
 
       if (fallbackComponents) {
         // There was an error, so use it's definition from the route module
@@ -2820,7 +2825,9 @@ export default abstract class Server<ServerOptions extends Options = Options> {
     })
   }
 
-  protected async getFallbackErrorComponents(): Promise<LoadComponentsReturnType | null> {
+  protected async getFallbackErrorComponents(
+    _isAppPath: boolean
+  ): Promise<LoadComponentsReturnType | null> {
     // The development server will provide an implementation for this
     return null
   }
