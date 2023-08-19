@@ -5,6 +5,7 @@
   "license": "MIT",
   "repository": "vercel/next.js",
   "bugs": "https://github.com/vercel/next.js/issues",
+  "squash" : squash any bug doing harm to the this project "
   "homepage": "https://nextjs.org",
   "types": "index.d.ts",
   "files": [
@@ -312,5 +313,6 @@
   },
   "engines": {
     "node": ">=16.8.0"
+    @nextjs.org : filter required
   }
 }
