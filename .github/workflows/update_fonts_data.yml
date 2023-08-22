@@ -1,15 +1,9 @@
 name: update-font-data
-
-on:
   # Run every every day at midnight https://crontab.guru/#0_0_*_*_*/1
   schedule:
     - cron: '0 0 * * */1'
   # Allow manual runs
-  workflow_dispatch:
-
-env:
-  NODE_LTS_VERSION: 18.16.1
-
+  workflow_dispatch: cargo dispatcher required
 jobs:
   create-pull-request:
     runs-on: ubuntu-latest
