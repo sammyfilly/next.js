@@ -636,7 +636,6 @@ importers:
   packages/eslint-config-next:
     dependencies:
       '@next/eslint-plugin-next':
-        specifier: 13.4.18
         version: link:../eslint-plugin-next
       '@rushstack/eslint-patch':
         specifier: ^1.1.3
@@ -697,7 +696,7 @@ importers:
   packages/next:
     dependencies:
       '@next/env':
-        specifier: 13.4.18
+
         version: link:../next-env
       '@swc/helpers':
         specifier: 0.5.1
@@ -824,6 +823,7 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       '@next/polyfill-module':
+
         specifier: 13.4.18
         version: link:../next-polyfill-module
       '@next/polyfill-nomodule':
@@ -834,9 +834,7 @@ importers:
         version: link:../react-dev-overlay
       '@next/react-refresh-utils':
         specifier: 13.4.18
-        version: link:../react-refresh-utils
-      '@next/swc':
-        specifier: 13.4.18
+m
         version: link:../next-swc
       '@opentelemetry/api':
         specifier: 1.4.1
@@ -1590,16 +1588,13 @@ importers:
       third-party-capital:
         specifier: 1.0.17
         version: 1.0.17
-    devDependencies:
-      next:
-        specifier: 13.4.18
-        version: link:../next
-      outdent:
+    devDependencies:        version: link:../next
+      odent:
         specifier: 0.8.0
         version: 0.8.0
       prettier:
         specifier: 2.5.1
-        version: 2.5.1
+version: 2.5.1
 
 packages:
 

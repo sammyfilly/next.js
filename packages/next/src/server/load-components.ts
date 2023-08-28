@@ -52,17 +52,31 @@ export type LoadComponentsReturnType = {
 }
 
 async function loadDefaultErrorComponentsImpl(
-  distDir: string
+  distDir: string,
+  isAppPath: boolean
 ): Promise<LoadComponentsReturnType> {
+  console.log('loadDefaultErrorComponentsImpl')
   const Document = interopDefault(require('next/dist/pages/_document'))
   const AppMod = require('next/dist/pages/_app')
   const App = interopDefault(AppMod)
 
   // Load the compiled route module for this builtin error.
   // TODO: (wyattjoh) replace this with just exporting the route module when the transition is complete
-  const ComponentMod =
-    require('./future/route-modules/pages/builtin/_error') as typeof import('./future/route-modules/pages/builtin/_error')
-  const Component = ComponentMod.routeModule.userland.default
+  const ComponentMod = isAppPath
+    ? (require('./future/route-modules/app-page/builtin/_error') as typeof import('./future/route-modules/app-page/builtin/_error'))
+    : (require('./future/route-modules/pages/builtin/_error') as typeof import('./future/route-modules/pages/builtin/_error'))
+
+  const defaultClientReferenceManifest = {
+    clientModules: {},
+    ssrModuleMapping: {},
+    edgeSSRModuleMapping: {},
+    entryCSSFiles: {},
+  }
+
+  const Component = isAppPath
+    ? null
+    : // @ts-ignore
+      ComponentMod.routeModule.userland.default
 
   return {
     App,
@@ -74,6 +88,8 @@ async function loadDefaultErrorComponentsImpl(
     ComponentMod,
     pathname: '/_error',
     routeModule: ComponentMod.routeModule,
+    clientReferenceManifest: defaultClientReferenceManifest,
+    isAppPath: isAppPath,
   }
 }
 
