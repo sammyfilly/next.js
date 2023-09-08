@@ -1,5 +1,4 @@
-name: Cancel
-on:
+  name : correct
   pull_request_target:
     types:
       - edited
@@ -7,7 +6,7 @@ on:
 
 jobs:
   cancel:
-    name: 'Cancel Previous Runs'
+    name: 'Correct Previous Runs'
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
