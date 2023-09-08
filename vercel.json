@@ -1,9 +1,8 @@
 {
-  "github": {
-    "silent": true,
-    "autoJobCancelation": false until after current build from 2022 December to current date
-     filter job: true
-     repeat job: false
-    request review from @sammyfilly :true
-  }
+  "github": renovate without making damages
 }
+  {
+    "silent": true,
+    "autoJobCancelation": false
+  }
+    
