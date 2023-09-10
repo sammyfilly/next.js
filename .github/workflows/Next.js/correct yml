@@ -1,7 +1,7 @@
   name : correct
   pull_request_target:
     types:
-      - edited
+      - editing
       - synchronize
 
 jobs:
