@@ -62,6 +62,9 @@ import { parseVersionInfo, VersionInfo } from './parse-version-info'
 import { isAPIRoute } from '../../lib/is-api-route'
 import { getRouteLoaderEntry } from '../../build/webpack/loaders/next-route-loader'
 import { isInternalComponent } from '../../lib/is-internal-component'
+import { RouteKind } from '../future/route-kind'
+
+const MILLISECONDS_IN_NANOSECOND = 1_000_000
 
 function diff(a: Set<any>, b: Set<any>) {
   return new Set([...a].filter((v) => !b.has(v)))
@@ -121,7 +124,7 @@ function addCorsSupport(req: IncomingMessage, res: ServerResponse) {
   return { preflight: false }
 }
 
-const matchNextPageBundleRequest = getPathMatch(
+export const matchNextPageBundleRequest = getPathMatch(
   '/_next/static/chunks/pages/:path*.js(\\.map|)'
 )
 
@@ -279,7 +282,7 @@ export default class HotReloader {
       parsedPageBundleUrl: UrlObject
     ): Promise<{ finished?: true }> => {
       const { pathname } = parsedPageBundleUrl
-      const params = matchNextPageBundleRequest<{ path: string[] }>(pathname)
+      const params = matchNextPageBundleRequest(pathname)
       if (!params) {
         return {}
       }
@@ -288,7 +291,7 @@ export default class HotReloader {
 
       try {
         decodedPagePath = `/${params.path
-          .map((param) => decodeURIComponent(param))
+          .map((param: string) => decodeURIComponent(param))
           .join('/')}`
       } catch (_) {
         throw new DecodeError('failed to decode param')
@@ -363,16 +366,36 @@ export default class HotReloader {
                 name: string
                 startTime?: bigint
                 endTime?: bigint
-                attrs?: Record<string, number | string>
+                attrs?: Record<string, number | string | undefined | string[]>
               }
             | undefined
 
           switch (payload.event) {
+            case 'span-end': {
+              new Span({
+                name: payload.spanName,
+                startTime:
+                  BigInt(Math.floor(payload.startTime)) *
+                  BigInt(MILLISECONDS_IN_NANOSECOND),
+                attrs: payload.attributes,
+              }).stop(
+                BigInt(Math.floor(payload.endTime)) *
+                  BigInt(MILLISECONDS_IN_NANOSECOND)
+              )
+              break
+            }
             case 'client-hmr-latency': {
               traceChild = {
                 name: payload.event,
-                startTime: BigInt(payload.startTime) * BigInt(1000 * 1000),
-                endTime: BigInt(payload.endTime) * BigInt(1000 * 1000),
+                startTime:
+                  BigInt(payload.startTime) *
+                  BigInt(MILLISECONDS_IN_NANOSECOND),
+                endTime:
+                  BigInt(payload.endTime) * BigInt(MILLISECONDS_IN_NANOSECOND),
+                attrs: {
+                  updatedModules: payload.updatedModules,
+                  page: payload.page,
+                },
               }
               break
             }
@@ -427,8 +450,10 @@ export default class HotReloader {
                 )?.[1]
                 if (file) {
                   // `file` is filepath in `pages/` but it can be weird long webpack url in `app/`.
-                  // If it's a webpack loader URL, it will start with '(app-client)/./'
-                  if (file.startsWith('(app-client)/./')) {
+                  // If it's a webpack loader URL, it will start with '(app-pages)/./'
+                  if (
+                    file.startsWith(`(${WEBPACK_LAYERS.appPagesBrowser})/./`)
+                  ) {
                     const fileUrl = new URL(file, 'file://')
                     const cwd = process.cwd()
                     const modules = fileUrl.searchParams
@@ -638,6 +663,7 @@ export default class HotReloader {
       entrypoints: (
         await createEntrypoints({
           appDir: this.appDir,
+          pagesDir: this.pagesDir,
           buildId: this.buildId,
           config: this.config,
           envFiles: [],
@@ -646,7 +672,8 @@ export default class HotReloader {
             '/_app': 'next/dist/pages/_app',
             '/_error': 'next/dist/pages/_error',
           },
-          pagesDir: this.pagesDir,
+          appPaths: { ['/_error']: '/_error/page' },
+
           previewMode: this.previewProps,
           rootDir: this.dir,
           pageExtensions: this.config.pageExtensions,
@@ -904,12 +931,20 @@ export default class HotReloader {
                       JSON.stringify(staticInfo.middleware || {})
                     ).toString('base64'),
                   })
+                } else if (isAPIRoute(page)) {
+                  value = getRouteLoaderEntry({
+                    kind: RouteKind.PAGES_API,
+                    page,
+                    absolutePagePath: relativeRequest,
+                    preferredRegion: staticInfo.preferredRegion,
+                    middlewareConfig: staticInfo.middleware || {},
+                  })
                 } else if (
-                  !isAPIRoute(page) &&
                   !isMiddlewareFile(page) &&
                   !isInternalComponent(relativeRequest)
                 ) {
                   value = getRouteLoaderEntry({
+                    kind: RouteKind.PAGES,
                     page,
                     pages: this.pagesMapping,
                     absolutePagePath: relativeRequest,
@@ -1044,7 +1079,7 @@ export default class HotReloader {
                         .toString('hex')
 
                       if (
-                        mod.layer === WEBPACK_LAYERS.server &&
+                        mod.layer === WEBPACK_LAYERS.reactServerComponents &&
                         mod?.buildInfo?.rsc?.type !== 'client'
                       ) {
                         chunksHashServerLayer.add(hash)
@@ -1059,7 +1094,7 @@ export default class HotReloader {
                       )
 
                       if (
-                        mod.layer === WEBPACK_LAYERS.server &&
+                        mod.layer === WEBPACK_LAYERS.reactServerComponents &&
                         mod?.buildInfo?.rsc?.type !== 'client'
                       ) {
                         chunksHashServerLayer.add(hash)
@@ -1092,7 +1127,8 @@ export default class HotReloader {
                   pageHashMap.set(key, curHash)
 
                   if (serverComponentChangedItems) {
-                    const serverKey = WEBPACK_LAYERS.server + ':' + key
+                    const serverKey =
+                      WEBPACK_LAYERS.reactServerComponents + ':' + key
                     const prevServerHash = pageHashMap.get(serverKey)
                     const curServerHash = chunksHashServerLayer.toString()
                     if (prevServerHash && prevServerHash !== curServerHash) {
@@ -1408,10 +1444,12 @@ export default class HotReloader {
     clientOnly,
     appPaths,
     match,
+    isApp,
   }: {
     page: string
     clientOnly: boolean
     appPaths?: string[] | null
+    isApp?: boolean
     match?: RouteMatch
   }): Promise<void> {
     // Make sure we don't re-build or dispose prebuilt pages
@@ -1429,6 +1467,7 @@ export default class HotReloader {
       clientOnly,
       appPaths,
       match,
+      isApp,
     }) as any
   }
 }
