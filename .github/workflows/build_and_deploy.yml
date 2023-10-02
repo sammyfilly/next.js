@@ -11,8 +11,8 @@ env:
   NODE_MAINTENANCE_VERSION: 16
   NODE_LTS_VERSION: 18.16.1
   CARGO_PROFILE_RELEASE_LTO: 'true'
-  TURBO_TEAM: 'vercel'
-  TURBO_REMOTE_ONLY: 'true'
+  TURBO_TEAM: 'nextjs.org'
+  TURBO_REMOTE_ONLY: 'false'
 
 jobs:
   build:

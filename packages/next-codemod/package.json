@@ -1,6 +1,5 @@
 {
   "name": "@next/codemod",
-  "version": "13.4.17",
   "license": "MIT",
   "repository": {
     "type": "git",
