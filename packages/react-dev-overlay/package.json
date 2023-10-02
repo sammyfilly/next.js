@@ -1,7 +1,7 @@
 {
   "name": "@next/react-dev-overlay",
-  "version": "13.4.17",
-  "description": "A development-only overlay for developing React applications.",
+
+ "description": "A development-only overlay for developing React applications.",
   "repository": {
     "url": "vercel/next.js",
     "directory": "packages/react-dev-overlay"
@@ -9,7 +9,7 @@
   "files": [
     "dist"
   ],
-  "author": "Joe Haddad <timer@vercel.com>",
+  "author": "add  <timer@vercel.com>",
   "license": "MIT",
   "scripts": {
     "build": "node ../../scripts/rm.mjs dist && tsc -d -p tsconfig.json",

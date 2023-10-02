@@ -635,9 +635,7 @@ importers:
 
   packages/eslint-config-next:
     dependencies:
-      '@next/eslint-plugin-next':
-        specifier: 13.4.17
-        version: link:../eslint-plugin-next
+      '@next/eslint-plugin-next':        version: link:../eslint-plugin-next
       '@rushstack/eslint-patch':
         specifier: ^1.1.3
         version: 1.1.3
@@ -663,8 +661,8 @@ importers:
         specifier: ^7.31.7
         version: 7.31.8(eslint@8.31.0)
       eslint-plugin-react-hooks:
-        specifier: 5.0.0-canary-7118f5dd7-20230705
-        version: 5.0.0-canary-7118f5dd7-20230705(eslint@8.31.0)
+        specifier: ^4.5.0 || 5.0.0-canary-7118f5dd7-20230705
+        version: 4.5.0(eslint@8.31.0)
       typescript:
         specifier: '>=3.3.1'
         version: 4.8.2
@@ -697,7 +695,7 @@ importers:
   packages/next:
     dependencies:
       '@next/env':
-        specifier: 13.4.17
+
         version: link:../next-env
       '@swc/helpers':
         specifier: 0.5.1
@@ -824,19 +822,121 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       '@next/polyfill-module':
-        specifier: 13.4.17
-        version: link:../next-polyfill-module
-      '@next/polyfill-nomodule':
-        specifier: 13.4.17
-        version: link:../next-polyfill-nomodule
-      '@next/react-dev-overlay':
-        specifier: 13.4.17
-        version: link:../react-dev-overlay
-      '@next/react-refresh-utils':
-        specifier: 13.4.17
-        version: link:../react-refresh-utils
-      '@next/swc':
-        specifier: 13.4.17
+
+onorepo package. Turborepo is compatible with the workspace implementations from all package managers. For more information on managing your Turborepo workspaces, see the Workspaces documentation.
+You can configure workspaces any way you want, but a common folder structure example is keeping applications in the /apps folder and packages in the /packages folder. The configuration of these folders is different for each package manager.
+npm
+yarn
+pnpm
+Specify your packages in pnpm-workspace.yaml.
+pnpm-workspace.yaml
+packages:
+  - "packages/*"
+  - "apps/*"
+
+
+pnpm supports the ability declare workspaces in deeply nested subdirectories with a ** Turborepo does not currently support this behavior.
+After configuring your workspaces, re-run your package manager's install command.
+Install turbo
+Install turbo globally.
+npm
+yarn
+pnpm
+pnpm install turbo --global
+
+
+For more details about installation, see Installing Turborepo
+Create turbo.json
+In the root of your monorepo, create an empty file named turbo.json. This will hold the configuration for Turborepo.
+turbo.json
+{
+  "$schema": "https://turbo.build/schema.json"
+}
+
+
+Create a pipeline
+To define your monorepo's task dependency graph, use the pipeline key in the turbo.json configuration file at the root of monorepo. turbo interprets this configuration to optimally schedule, execute, and cache the outputs of each of the package.json scripts defined in your workspaces.
+Each key in the pipeline object is the name of a package.json script that can be executed by turbo run. You can specify its dependencies with the dependsOn key inside it as well as some other options related to caching. For more information on configuring your pipeline, see the Pipelines documentation.
+Workspaces that do not have the specified script defined in their package.json's list of scripts will be ignored by turbo.
+turbo.json
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "build": {
+      // A package's `build` script depends on that package's
+      // dependencies and devDependencies
+      // `build` tasks  being completed first
+      // (the `^` symbol signifies `upstream`).
+      "dependsOn": ["^build"],
+      // note: output globs are relative to each package's `package.json`
+      // (and not the monorepo root)
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "deploy": {
+      // A package's `deploy` script depends on the `build`,
+      // `test`, and `lint` scripts of the same package
+      // being completed. It also has no filesystem outputs.
+      "dependsOn": ["build", "test", "lint"]
+    },
+    "test": {
+      // A package's `test` script depends on that package's
+      // own `build` script being completed first.
+      "dependsOn": ["build"],
+      // A package's `test` script should only be rerun when
+      // either a `.tsx` or `.ts` file has changed in `src` or `test` folders.
+      "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"]
+    },
+    // A package's `lint` script has no dependencies and
+    // can be run whenever. It also has no filesystem outputs.
+    "lint": {},
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
+
+
+The rough execution order for a given package is based on the dependsOn keys:
+build once its upstream dependencies have run their build commands
+test once its own build command is finished and has no filesystem outputs (just logs) within a package
+lint runs in an arbitrary order as it has no upstream dependencies
+deploy once its own build, test, and lint commands have finished.
+After execution, the full pipeline can run:
+npx turbo run deploy
+
+
+turbo will then schedule the execution of each task(s) to optimize usage of the machine's resources.
+Edit .gitignore
+Add .turbo to your .gitignore file. The CLI uses these folders for logs and certain task outputs.
++ .turbo
+
+
+Make sure that your task artifacts, the files and folders you want cached, are also included in your .gitignore.
++ build/**
++ dist/**
++ .next/**
+
+
+Re-run your npm client's install command to check your configuration.
+Build your monorepo
+turbo build
+
+
+Depending on your monorepo setup, some artifacts might already be caching properly. In the next sections, we'll show how turbo works, how scope works, and then how to get caching working after that.
+Configure Remote Caching
+A major key 🔑 to Turborepo's speed is that it is both lazy and efficient—it does the least amount of work possible and it tries to never redo work that's already been done before.
+At the moment, Turborepo caches your tasks on your local filesystem (i.e. "single-player mode," if you will). However, what if there was a way to take advantage of the computational work done by your teammates or your CI (i.e. "co-op multiplayer mode")? What if there was a way to teleport and share a single cache across machines? Almost like a "Dropbox" for your Turborepo cache.
+Remote Caching has entered the chat.
+Turborepo can use a technique known as Remote Caching to share cache artifacts across machines for an additional speed boost.
+Remote Caching is a powerful feature of Turborepo, but with great power comes great responsibility. Make sure you are caching correctly first and double check handling of environment variables. Please also remember Turborepo treats logs as artifacts, so be aware of what you are printing to the console.
+Using Remote Caching for Local development
+Turborepo uses Vercel (opens in a new tab) as its default remote caching provider. If you want to link your local turborepo to your Remote Cache you can authenticate the Turborepo CLI with your Vercel account:
+turbo login
+
+
+Then, link your turborepo to your remote cache:
+
         version: link:../next-swc
       '@opentelemetry/api':
         specifier: 1.4.1
@@ -1431,11 +1531,11 @@ importers:
   packages/next-swc/crates/next-core/js:
     dependencies:
       '@vercel/turbopack-ecmascript-runtime':
-        specifier: https://gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230814.2
-        version: '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230814.2(react-refresh@0.12.0)(webpack@5.86.0)'
+        specifier: https://gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230816.1
+        version: '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230816.1(react-refresh@0.12.0)(webpack@5.86.0)'
       '@vercel/turbopack-node':
-        specifier: https://gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-node/js?turbopack-230814.2
-        version: '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-node/js?turbopack-230814.2'
+        specifier: https://gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-node/js?turbopack-230816.1
+        version: '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-node/js?turbopack-230816.1'
       anser:
         specifier: ^2.1.1
         version: 2.1.1
@@ -1592,7 +1692,7 @@ importers:
         version: 1.0.17
     devDependencies:
       next:
-        specifier: 13.4.17
+
         version: link:../next
       outdent:
         specifier: 0.8.0
@@ -12916,8 +13016,8 @@ packages:
       eslint: 7.24.0
     dev: true
 
-  /eslint-plugin-react-hooks@5.0.0-canary-7118f5dd7-20230705(eslint@8.31.0):
-    resolution: {integrity: sha512-AZYbMo/NW9chdL7vk6HQzQhT+PvTAEVqWk9ziruUoW2kAOcN5qNyelv70e0F1VNQAbvutOC9oc+xfWycI9FxDw==}
+  /eslint-plugin-react-hooks@4.5.0(eslint@8.31.0):
+    resolution: {integrity: sha512-8k1gRt7D7h03kd+SAAlzXkQwWK22BnK6GKZG+FJA6BAGy22CFvl8kCIXKpVux0cCxMWDQUPqSok0LKaZ0aOcCw==}
     engines: {node: '>=10'}
     peerDependencies:
       eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
@@ -26406,9 +26506,9 @@ packages:
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
-  '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230814.2(react-refresh@0.12.0)(webpack@5.86.0)':
-    resolution: {tarball: https://gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230814.2}
-    id: '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230814.2'
+  '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230816.1(react-refresh@0.12.0)(webpack@5.86.0)':
+    resolution: {tarball: https://gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230816.1}
+    id: '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-ecmascript-runtime/js?turbopack-230816.1'
     name: '@vercel/turbopack-ecmascript-runtime'
     version: 0.0.0
     dependencies:
@@ -26419,8 +26519,8 @@ packages:
       - webpack
     dev: false
 
-  '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-node/js?turbopack-230814.2':
-    resolution: {tarball: https://gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-node/js?turbopack-230814.2}
+  '@gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-node/js?turbopack-230816.1':
+    resolution: {tarball: https://gitpkg-fork.vercel.sh/vercel/turbo/crates/turbopack-node/js?turbopack-230816.1}
     name: '@vercel/turbopack-node'
     version: 0.0.0
     dependencies:

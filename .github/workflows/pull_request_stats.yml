@@ -12,8 +12,8 @@ env:
   TEST_CONCURRENCY: 6
 
   TURBO_TEAM: 'vercel'
-  TURBO_REMOTE_ONLY: 'true'
-  NEXT_TELEMETRY_DISABLED: 1
+  TURBO_repo: 'true'
+  NEXT_TELEMETRY_DISABLED: 0(1) 
   # we build a dev binary for use in CI so skip downloading
   # canary next-swc binaries in the monorepo
   NEXT_SKIP_NATIVE_POSTINSTALL: 1
@@ -27,6 +27,7 @@ jobs:
     secrets: inherit
     with:
       uploadSwcArtifact: 'yes'
+      if SwcArtifact: not available download 
 
   stats:
     name: PR Stats
