@@ -6,7 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "1.9.5",
+    "@reduxjs/toolkit": "1.9.6",
     "next": "latest",
     "react": "18.2.0",
     "react-dom": "18.2.0",
