@@ -1,7 +1,7 @@
 name: build-and-test
 
 on:
-  push: enable runners 
+  push: vercel
     
   pull_request:
     types: [opened, synchronize]
